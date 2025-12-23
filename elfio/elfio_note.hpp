@@ -69,10 +69,13 @@ class note_section_accessor_template
         const char* pData = notes->get_data() + note_start_positions[index];
         int         align = sizeof( Elf_Word );
 
-        const endianess_convertor& convertor = elf_file.get_convertor();
-        type = convertor( *(const Elf_Word*)( pData + 2 * (size_t)align ) );
-        Elf_Word namesz = convertor( *(const Elf_Word*)( pData ) );
-        descSize = convertor( *(const Elf_Word*)( pData + sizeof( namesz ) ) );
+        std::shared_ptr<endianness_convertor> convertor =
+            elf_file.get_convertor();
+        type =
+            ( *convertor )( *(const Elf_Word*)( pData + 2 * (size_t)align ) );
+        Elf_Word namesz = ( *convertor )( *(const Elf_Word*)( pData ) );
+        descSize =
+            ( *convertor )( *(const Elf_Word*)( pData + sizeof( namesz ) ) );
 
         Elf_Xword max_name_size =
             ( notes->*F_get_size )() - note_start_positions[index];
@@ -99,16 +102,17 @@ class note_section_accessor_template
                    const char*        desc,
                    Elf_Word           descSize )
     {
-        const endianess_convertor& convertor = elf_file.get_convertor();
+        std::shared_ptr<endianness_convertor> convertor =
+            elf_file.get_convertor();
 
         int         align       = sizeof( Elf_Word );
         Elf_Word    nameLen     = (Elf_Word)name.size() + 1;
-        Elf_Word    nameLenConv = convertor( nameLen );
+        Elf_Word    nameLenConv = ( *convertor )( nameLen );
         std::string buffer( reinterpret_cast<char*>( &nameLenConv ), align );
-        Elf_Word    descSizeConv = convertor( descSize );
+        Elf_Word    descSizeConv = ( *convertor )( descSize );
 
         buffer.append( reinterpret_cast<char*>( &descSizeConv ), align );
-        type = convertor( type );
+        type = ( *convertor )( type );
         buffer.append( reinterpret_cast<char*>( &type ), align );
         buffer.append( name );
         buffer.append( 1, '\x00' );
@@ -131,7 +135,7 @@ class note_section_accessor_template
     //------------------------------------------------------------------------------
     void process_section()
     {
-        const endianess_convertor& convertor = elf_file.get_convertor();
+        std::shared_ptr<const endianness_convertor> convertor = elf_file.get_convertor();
         const char*                data      = notes->get_data();
         Elf_Xword                  size      = ( notes->*F_get_size )();
         Elf_Xword                  current   = 0;
@@ -145,8 +149,8 @@ class note_section_accessor_template
 
         Elf_Word align = sizeof( Elf_Word );
         while ( current + (Elf_Xword)3 * align <= size ) {
-            Elf_Word namesz = convertor( *(const Elf_Word*)( data + current ) );
-            Elf_Word descsz = convertor(
+            Elf_Word namesz = ( *convertor )( *(const Elf_Word*)( data + current ) );
+            Elf_Word descsz = ( *convertor )(
                 *(const Elf_Word*)( data + current + sizeof( namesz ) ) );
             Elf_Word advance =
                 (Elf_Xword)3 * sizeof( Elf_Word ) +
