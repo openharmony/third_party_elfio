@@ -987,7 +987,7 @@ class mock_wiiu_compression : public compression_interface
   public:
     std::unique_ptr<char[]>
     inflate( const char*                                 data,
-             std::shared_ptr<const endianness_convertor> convertor,
+             std::shared_ptr<const endianess_convertor> convertor,
              Elf_Xword                                   compressed_size,
              Elf_Xword& uncompressed_size ) const override
     {
@@ -998,7 +998,7 @@ class mock_wiiu_compression : public compression_interface
 
     std::unique_ptr<char[]>
     deflate( const char*                                 data,
-             std::shared_ptr<const endianness_convertor> convertor,
+             std::shared_ptr<const endianess_convertor> convertor,
              Elf_Xword                                   decompressed_size,
              Elf_Xword& compressed_size ) const override
     {
