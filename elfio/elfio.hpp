@@ -65,7 +65,7 @@ class elfio
     //------------------------------------------------------------------------------
     elfio() noexcept : sections( this ), segments( this )
     {
-        convertor       = std::make_shared<endianness_convertor>();
+        convertor       = std::make_shared<endianess_convertor>();
         addr_translator = std::make_shared<address_translator>();
         create( ELFCLASS32, ELFDATA2LSB );
     }
@@ -265,7 +265,7 @@ class elfio
     ELFIO_HEADER_ACCESS_GET_SET( Elf_Half, section_name_str_index );
 
     //------------------------------------------------------------------------------
-    const std::shared_ptr<endianness_convertor>& get_convertor() const { return convertor; }
+    const std::shared_ptr<endianess_convertor>& get_convertor() const { return convertor; }
 
     //------------------------------------------------------------------------------
     Elf_Xword get_default_entry_size( Elf_Word section_type ) const
@@ -1106,7 +1106,7 @@ class elfio
     std::unique_ptr<elf_header>            header  = nullptr;
     std::vector<std::unique_ptr<section>>  sections_;
     std::vector<std::unique_ptr<segment>>  segments_;
-    std::shared_ptr<endianness_convertor> convertor; //!< Endianness convertor
+    std::shared_ptr<endianess_convertor> convertor; //!< Endianness convertor
     std::shared_ptr<address_translator> addr_translator; //!< Address translator
     std::shared_ptr<compression_interface> compression = nullptr;
 
