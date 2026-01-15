@@ -79,7 +79,7 @@ template <class T> class section_impl : public section
 {
   public:
     //------------------------------------------------------------------------------
-    section_impl( std::shared_ptr<endianness_convertor>  convertor,
+    section_impl( std::shared_ptr<endianess_convertor>  convertor,
                   std::shared_ptr<address_translator>    translator,
                   std::shared_ptr<compression_interface> compression )
         : convertor( convertor ), translator( translator ),
@@ -374,7 +374,7 @@ template <class T> class section_impl : public section
     std::string                                  name;
     mutable std::unique_ptr<char[]>              data;
     mutable Elf_Word                             data_size      = 0;
-    std::shared_ptr<endianness_convertor> convertor = nullptr;
+    std::shared_ptr<endianess_convertor> convertor = nullptr;
     std::shared_ptr<address_translator> translator = nullptr;
     std::shared_ptr<compression_interface> compression = nullptr;
     bool                                         is_address_set = false;
