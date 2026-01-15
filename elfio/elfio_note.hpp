@@ -69,7 +69,7 @@ class note_section_accessor_template
         const char* pData = notes->get_data() + note_start_positions[index];
         int         align = sizeof( Elf_Word );
 
-        std::shared_ptr<endianness_convertor> convertor =
+        std::shared_ptr<endianess_convertor> convertor =
             elf_file.get_convertor();
         type =
             ( *convertor )( *(const Elf_Word*)( pData + 2 * (size_t)align ) );
@@ -102,7 +102,7 @@ class note_section_accessor_template
                    const char*        desc,
                    Elf_Word           descSize )
     {
-        std::shared_ptr<endianness_convertor> convertor =
+        std::shared_ptr<endianess_convertor> convertor =
             elf_file.get_convertor();
 
         int         align       = sizeof( Elf_Word );
@@ -135,7 +135,7 @@ class note_section_accessor_template
     //------------------------------------------------------------------------------
     void process_section()
     {
-        std::shared_ptr<const endianness_convertor> convertor = elf_file.get_convertor();
+        std::shared_ptr<const endianess_convertor> convertor = elf_file.get_convertor();
         const char*                data      = notes->get_data();
         Elf_Xword                  size      = ( notes->*F_get_size )();
         Elf_Xword                  current   = 0;
