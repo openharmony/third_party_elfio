@@ -75,7 +75,7 @@ template <class T> class elf_header_impl : public elf_header
 {
   public:
     //------------------------------------------------------------------------------
-    elf_header_impl( std::shared_ptr<endianness_convertor> convertor,
+    elf_header_impl( std::shared_ptr<endianess_convertor> convertor,
                      unsigned char                         encoding,
                      std::shared_ptr<address_translator>   translator )
         : convertor( convertor ), translator( translator )
@@ -144,7 +144,7 @@ template <class T> class elf_header_impl : public elf_header
 
   private:
     T                                     header     = {};
-    std::shared_ptr<endianness_convertor> convertor  = nullptr;
+    std::shared_ptr<endianess_convertor> convertor  = nullptr;
     std::shared_ptr<address_translator>   translator = nullptr;
 };
 
