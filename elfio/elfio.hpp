@@ -563,12 +563,12 @@ class elfio
             if ( file_class == ELFCLASS64 ) {
                 segments_.emplace_back(
                     new ( std::nothrow ) segment_impl<Elf64_Phdr>(
-                        &convertor, &addr_translator ) );
+                        convertor, addr_translator ) );
             }
             else if ( file_class == ELFCLASS32 ) {
                 segments_.emplace_back(
                     new ( std::nothrow ) segment_impl<Elf32_Phdr>(
-                        &convertor, &addr_translator ) );
+                        convertor, addr_translator ) );
             }
             else {
                 segments_.pop_back();
