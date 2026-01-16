@@ -986,24 +986,25 @@ class mock_wiiu_compression : public compression_interface
 {
   public:
     std::unique_ptr<char[]>
-    inflate( const char*                data,
-             const endianess_convertor* convertor,
-             Elf_Xword                  compressed_size,
-             Elf_Xword&                 uncompressed_size ) const override
+    inflate( const char*                                 data,
+             std::shared_ptr<const endianess_convertor> convertor,
+             Elf_Xword                                   compressed_size,
+             Elf_Xword& uncompressed_size ) const override
     {
         uncompressed_size = 2 * compressed_size;
-        return std::unique_ptr<char[]>(
-            new ( std::nothrow ) char[uncompressed_size + 1] );
+        return std::unique_ptr<char[]>( new (
+            std::nothrow ) char[static_cast<size_t>( uncompressed_size ) + 1] );
     }
 
-    std::unique_ptr<char[]> deflate( const char*                data,
-                                     const endianess_convertor* convertor,
-                                     Elf_Xword  decompressed_size,
-                                     Elf_Xword& compressed_size ) const override
+    std::unique_ptr<char[]>
+    deflate( const char*                                 data,
+             std::shared_ptr<const endianess_convertor> convertor,
+             Elf_Xword                                   decompressed_size,
+             Elf_Xword& compressed_size ) const override
     {
         compressed_size = decompressed_size / 2;
-        return std::unique_ptr<char[]>(
-            new ( std::nothrow ) char[compressed_size + 1] );
+        return std::unique_ptr<char[]>( new (
+            std::nothrow ) char[static_cast<size_t>( compressed_size ) + 1] );
     }
 };
 

@@ -79,9 +79,9 @@ template <class T> class section_impl : public section
 {
   public:
     //------------------------------------------------------------------------------
-    section_impl( const endianess_convertor*                    convertor,
-                  const address_translator*                     translator,
-                  const std::shared_ptr<compression_interface>& compression )
+    section_impl( std::shared_ptr<endianess_convertor>  convertor,
+                  std::shared_ptr<address_translator>    translator,
+                  std::shared_ptr<compression_interface> compression )
         : convertor( convertor ), translator( translator ),
           compression( compression )
     {
@@ -134,7 +134,8 @@ template <class T> class section_impl : public section
     void set_data( const char* raw_data, Elf_Word size ) override
     {
         if ( get_type() != SHT_NOBITS ) {
-            data = std::unique_ptr<char[]>( new ( std::nothrow ) char[size] );
+            data = std::unique_ptr<char[]>(
+                new ( std::nothrow ) char[(size_t)size] );
             if ( nullptr != data.get() && nullptr != raw_data ) {
                 data_size = size;
                 std::copy( raw_data, raw_data + size, data.get() );
@@ -191,7 +192,7 @@ template <class T> class section_impl : public section
                                new_data.get() + pos );
                     std::copy( d + pos, d + get_size(),
                                new_data.get() + pos + size );
-                    data = std::move( new_data );
+                    data      = std::move( new_data );
                 }
                 else {
                     size = 0;
@@ -373,9 +374,9 @@ template <class T> class section_impl : public section
     std::string                                  name;
     mutable std::unique_ptr<char[]>              data;
     mutable Elf_Word                             data_size      = 0;
-    const endianess_convertor*                   convertor      = nullptr;
-    const address_translator*                    translator     = nullptr;
-    const std::shared_ptr<compression_interface> compression    = nullptr;
+    std::shared_ptr<endianess_convertor> convertor = nullptr;
+    std::shared_ptr<address_translator> translator = nullptr;
+    std::shared_ptr<compression_interface> compression = nullptr;
     bool                                         is_address_set = false;
     size_t                                       stream_size    = 0;
     mutable bool                                 is_lazy        = false;
