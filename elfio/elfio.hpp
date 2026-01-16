@@ -537,6 +537,71 @@ class elfio
         //           sect_begin=12, sect_size=0  -> shall return false!
     }
 
+    static bool check_tls_sections( const segment* seg, const section* sec ) {
+        if ( sec->get_flags() & SHF_TLS ) {
+            // .tbss must only be shown in the PT_TLS segment.
+            if ( sec->get_type() == SHT_NOBITS ) {
+                return seg->get_type() == PT_TLS;
+            }
+            // SHF_TLS sections are only shown in PT_TLS, PT_LOAD or PT_GNU_RELRO
+            // segments.
+            return ( seg->get_type() == PT_TLS ) || ( seg->get_type() == PT_LOAD ) ||
+                ( seg->get_type() == PT_GNU_RELRO );
+        }
+        // PT_TLS must only have SHF_TLS sections.
+        return seg->get_type() != PT_TLS;
+    }
+
+    static bool check_offsets( const segment* seg, const section* sec ) {
+        // SHT_NOBITS sections don't need to have an offset inside the segment.
+        if ( sec->get_type() == SHT_NOBITS ) {
+            return true;
+        }
+        if ( sec->get_offset() < seg->get_offset() ) {
+            return false;
+        }
+        // Only non-empty sections can be at the end of a segment.
+        if ( sec->get_size() == 0 ) {
+            return ( sec->get_offset() + 1 <= seg->get_offset() + seg->get_file_size() );
+        }
+        return sec->get_offset() + sec->get_size() <= seg->get_offset() + seg->get_file_size();
+    }
+
+    static bool check_vma( const segment* seg, const section* sec ) {
+        if ( !( sec->get_flags() & SHF_ALLOC ) ) {
+            return true;
+        }
+        if ( sec->get_address() < seg->get_virtual_address() ) {
+            return false;
+        }
+        bool IsTbss =
+            ( sec->get_type() == SHT_NOBITS ) && ( ( sec->get_flags() & SHF_TLS ) != 0 );
+        // .tbss is special, it only has memory in PT_TLS and has NOBITS properties.
+        bool IsTbssInNonTLS = IsTbss && seg->get_type() != PT_TLS;
+        // Only non-empty sections can be at the end of a segment.
+        if ( sec->get_size() == 0 || IsTbssInNonTLS ) {
+            return sec->get_address() + 1 <= seg->get_virtual_address() + seg->get_memory_size();
+        }
+        return sec->get_address() + sec->get_size() <= seg->get_virtual_address() + seg->get_memory_size();
+    }
+
+    static bool check_pt_dynamic( const segment* seg, const section* sec ) {
+        if ( seg->get_type() != PT_DYNAMIC || seg->get_memory_size() == 0 || sec->get_size() != 0 ) {
+            return true;
+        }
+
+        // We get here when we have an empty section. Only non-empty sections can be
+        // at the start or at the end of PT_DYNAMIC.
+        // Is section within the phdr both based on offset and VMA?
+        bool checkOffset = ( sec->get_type() == SHT_NOBITS ) ||
+                            ( sec->get_offset() > seg->get_offset() &&
+                            sec->get_offset() < seg->get_offset() + seg->get_file_size() );
+        bool checkVA = !( sec->get_flags() & SHF_ALLOC ) ||
+                        ( sec->get_address() > seg->get_virtual_address() &&
+                        sec->get_address() < seg->get_memory_size() );
+        return checkOffset && checkVA;
+    }
+
     //------------------------------------------------------------------------------
     bool load_segments( std::istream& stream, bool is_lazy )
     {
@@ -587,19 +652,12 @@ class elfio
             seg->set_index( i );
 
             // Add sections to the segments (similar to readelfs algorithm)
-            Elf64_Off segBaseOffset = seg->get_offset();
-            Elf64_Off segEndOffset  = segBaseOffset + seg->get_file_size();
-            Elf64_Off segVBaseAddr  = seg->get_virtual_address();
-            Elf64_Off segVEndAddr   = segVBaseAddr + seg->get_memory_size();
             for ( const auto& psec : sections ) {
                 // SHF_ALLOC sections are matched based on the virtual address
                 // otherwise the file offset is matched
-                if ( ( ( psec->get_flags() & SHF_ALLOC ) == SHF_ALLOC )
-                         ? is_sect_in_seg( psec->get_address(),
-                                           psec->get_size(), segVBaseAddr,
-                                           segVEndAddr )
-                         : is_sect_in_seg( psec->get_offset(), psec->get_size(),
-                                           segBaseOffset, segEndOffset ) ) {
+                section* sec = psec.get();
+                if ( check_tls_sections( seg, sec ) && check_offsets( seg, sec ) &&
+                    check_vma( seg, sec ) && check_pt_dynamic( seg, sec ) ) {
                     // Alignment of segment shall not be updated, to preserve original value
                     // It will be re-calculated on saving.
                     seg->add_section_index( psec->get_index(), 0 );
