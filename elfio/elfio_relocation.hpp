@@ -325,13 +325,13 @@ template <class S> class relocation_section_accessor_template
                                 unsigned&   type,
                                 Elf_Sxword& addend ) const
     {
-        const endianess_convertor& convertor = elf_file.get_convertor();
+        std::shared_ptr<const endianess_convertor> convertor = elf_file.get_convertor();
 
         const T* pEntry = reinterpret_cast<const T*>(
             relocation_section->get_data() +
             index * relocation_section->get_entry_size() );
-        offset        = convertor( pEntry->r_offset );
-        Elf_Xword tmp = convertor( pEntry->r_info );
+        offset        = ( *convertor )( pEntry->r_offset );
+        Elf_Xword tmp = ( *convertor )( pEntry->r_info );
         symbol        = get_sym_and_type<T>::get_r_sym( tmp );
         type          = get_sym_and_type<T>::get_r_type( tmp );
         addend        = 0;
@@ -345,16 +345,16 @@ template <class S> class relocation_section_accessor_template
                                  unsigned&   type,
                                  Elf_Sxword& addend ) const
     {
-        const endianess_convertor& convertor = elf_file.get_convertor();
+        std::shared_ptr<const endianess_convertor> convertor = elf_file.get_convertor();
 
         const T* pEntry = reinterpret_cast<const T*>(
             relocation_section->get_data() +
             index * relocation_section->get_entry_size() );
-        offset        = convertor( pEntry->r_offset );
-        Elf_Xword tmp = convertor( pEntry->r_info );
+        offset        = ( *convertor )( pEntry->r_offset );
+        Elf_Xword tmp = ( *convertor )( pEntry->r_info );
         symbol        = get_sym_and_type<T>::get_r_sym( tmp );
         type          = get_sym_and_type<T>::get_r_type( tmp );
-        addend        = convertor( pEntry->r_addend );
+        addend        = ( *convertor )( pEntry->r_addend );
     }
 
     //------------------------------------------------------------------------------
@@ -365,7 +365,7 @@ template <class S> class relocation_section_accessor_template
                                 unsigned   type,
                                 Elf_Sxword )
     {
-        const endianess_convertor& convertor = elf_file.get_convertor();
+        std::shared_ptr<const endianess_convertor> convertor = elf_file.get_convertor();
 
         T* pEntry = const_cast<T*>( reinterpret_cast<const T*>(
             relocation_section->get_data() +
@@ -378,8 +378,8 @@ template <class S> class relocation_section_accessor_template
             pEntry->r_info = ELF64_R_INFO( (Elf_Xword)symbol, type );
         }
         pEntry->r_offset = decltype( pEntry->r_offset )( offset );
-        pEntry->r_offset = convertor( pEntry->r_offset );
-        pEntry->r_info   = convertor( pEntry->r_info );
+        pEntry->r_offset = ( *convertor )( pEntry->r_offset );
+        pEntry->r_info   = ( *convertor )( pEntry->r_info );
     }
 
     //------------------------------------------------------------------------------
@@ -390,7 +390,7 @@ template <class S> class relocation_section_accessor_template
                                  unsigned   type,
                                  Elf_Sxword addend )
     {
-        const endianess_convertor& convertor = elf_file.get_convertor();
+        std::shared_ptr<const endianess_convertor> convertor = elf_file.get_convertor();
 
         T* pEntry = const_cast<T*>( reinterpret_cast<const T*>(
             relocation_section->get_data() +
@@ -404,22 +404,22 @@ template <class S> class relocation_section_accessor_template
         }
         pEntry->r_offset = decltype( pEntry->r_offset )( offset );
         pEntry->r_addend = decltype( pEntry->r_addend )( addend );
-        pEntry->r_offset = convertor( pEntry->r_offset );
-        pEntry->r_info   = convertor( pEntry->r_info );
-        pEntry->r_addend = convertor( pEntry->r_addend );
+        pEntry->r_offset = ( *convertor )( pEntry->r_offset );
+        pEntry->r_info   = ( *convertor )( pEntry->r_info );
+        pEntry->r_addend = ( *convertor )( pEntry->r_addend );
     }
 
     //------------------------------------------------------------------------------
     template <class T>
     void generic_add_entry( Elf64_Addr offset, Elf_Xword info )
     {
-        const endianess_convertor& convertor = elf_file.get_convertor();
+        std::shared_ptr<const endianess_convertor> convertor = elf_file.get_convertor();
 
         T entry;
         entry.r_offset = decltype( entry.r_offset )( offset );
         entry.r_info   = decltype( entry.r_info )( info );
-        entry.r_offset = convertor( entry.r_offset );
-        entry.r_info   = convertor( entry.r_info );
+        entry.r_offset = ( *convertor )( entry.r_offset );
+        entry.r_info   = ( *convertor )( entry.r_info );
 
         relocation_section->append_data( reinterpret_cast<char*>( &entry ),
                                          sizeof( entry ) );
@@ -430,15 +430,15 @@ template <class S> class relocation_section_accessor_template
     void
     generic_add_entry( Elf64_Addr offset, Elf_Xword info, Elf_Sxword addend )
     {
-        const endianess_convertor& convertor = elf_file.get_convertor();
+        std::shared_ptr<const endianess_convertor> convertor = elf_file.get_convertor();
 
         T entry;
         entry.r_offset = offset;
         entry.r_info   = info;
         entry.r_addend = addend;
-        entry.r_offset = convertor( entry.r_offset );
-        entry.r_info   = convertor( entry.r_info );
-        entry.r_addend = convertor( entry.r_addend );
+        entry.r_offset = ( *convertor )( entry.r_offset );
+        entry.r_info   = ( *convertor )( entry.r_info );
+        entry.r_addend = ( *convertor )( entry.r_addend );
 
         relocation_section->append_data( reinterpret_cast<char*>( &entry ),
                                          sizeof( entry ) );
