@@ -21,6 +21,7 @@ config("elfio_public_config") {
 }
 
 ohos_shared_library("elfio") {
+  branch_protector_ret = "pac_ret"
   sources = [
     "./c_wrapper/elfio_c_wrapper.cpp",
     "//third_party/elfio/elfio/elfio_demo.cpp",
